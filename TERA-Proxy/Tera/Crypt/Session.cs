@@ -53,10 +53,10 @@ namespace Tera.Connection.Crypt
         public Session CloneKeys()
         {
             var session = new Session();
-            session.ClientKey1 = this.ClientKey1;
-            session.ClientKey2 = this.ClientKey2;
-            session.ServerKey1 = this.ServerKey1;
-            session.ServerKey2 = this.ServerKey2;
+            Array.Copy(this.ClientKey1, session.ClientKey1, 128);
+            Array.Copy(this.ClientKey2, session.ClientKey2, 128);
+            Array.Copy(this.ServerKey1, session.ServerKey1, 128);
+            Array.Copy(this.ServerKey2, session.ServerKey2, 128);
             session.init();
             return session;
         }

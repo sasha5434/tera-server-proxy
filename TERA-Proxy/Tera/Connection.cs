@@ -2,7 +2,6 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Threading;
 using Tera.Connection.Crypt;
 using Tera.Connection.Dispatcher;
 
@@ -18,10 +17,9 @@ namespace Tera.Connection
         private Stream clientConnection;
         private Stream serverConnection;
         private Dispatch dispatch;
-        private CancellationToken token;
         private int state;
 
-        public TeraConnection(Stream clientConnection, Stream serverConnection, IPEndPoint clientEndPoint, CancellationToken token)
+        public TeraConnection(Stream clientConnection, Stream serverConnection, IPEndPoint clientEndPoint)
         {
             this.userData = new UserData(clientEndPoint.ToString());
             this.state = -1;
@@ -31,7 +29,6 @@ namespace Tera.Connection
             this.clientBuffer = new PacketBuffer(dispatch);
             this.clientConnection = clientConnection;
             this.serverConnection = serverConnection;
-            this.token = token;
         }
 
         public void ServerWrite(byte[] data)
@@ -52,7 +49,7 @@ namespace Tera.Connection
                     {
                         if (data.Length == 128)
                         {
-                            Buffer.BlockCopy(data, 0, this.serverSession.ServerKey1, 0, data.Length);
+                            Array.Copy(data, this.serverSession.ServerKey1, 128);
                             this.state = 1;
                             this.sendClient(data);
                         }
@@ -63,7 +60,7 @@ namespace Tera.Connection
                     {
                         if (data.Length == 128)
                         {
-                            Buffer.BlockCopy(data, 0, this.serverSession.ServerKey2, 0, data.Length);
+                            Array.Copy(data, this.serverSession.ServerKey2, 128);
                             this.clientSession = this.serverSession.CloneKeys();
                             this.serverSession.init();
                             this.sendClient(data);
@@ -88,7 +85,7 @@ namespace Tera.Connection
                     {
                         if (data.Length == 128)
                         {
-                            Buffer.BlockCopy(data, 0, this.serverSession.ClientKey1, 0, data.Length);
+                            Array.Copy(data, this.serverSession.ClientKey1, 128);
                             sendServer(data);
                         }
                         break;
@@ -98,7 +95,7 @@ namespace Tera.Connection
                     {
                         if (data.Length == 128)
                         {
-                            Buffer.BlockCopy(data, 0, this.serverSession.ClientKey2, 0, data.Length);
+                            Array.Copy(data, this.serverSession.ClientKey2, 128);
                             sendServer(data);
                         }
                         break;
@@ -119,7 +116,7 @@ namespace Tera.Connection
             {
                 this.clientSession.Encrypt(data);
             }
-            this.clientConnection.WriteAsync(new ReadOnlyMemory<byte>(data), this.token);
+            this.clientConnection.Write(data);
         }
         public void sendServer(byte[] data)
         {
@@ -127,7 +124,7 @@ namespace Tera.Connection
             {
                 this.serverSession.Decrypt(data);
             }
-            this.serverConnection.WriteAsync(new ReadOnlyMemory<byte>(data), this.token);
+            this.serverConnection.Write(data);
         }
         public void Close()
         {

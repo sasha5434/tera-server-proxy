@@ -161,7 +161,7 @@ namespace NetProxy
                         }, true))
                         {
 
-                            _teraConnection = new TeraConnection(clientStream, serverStream, _sourceEndpoint, cancellationToken);
+                            _teraConnection = new TeraConnection(clientStream, serverStream, _sourceEndpoint);
 
                             await Task.WhenAny(
                                 ReadData(clientStream, 81920, Direction.Forward, cancellationToken),
