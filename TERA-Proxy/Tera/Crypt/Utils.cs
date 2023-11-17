@@ -11,7 +11,7 @@ namespace Tera.Connection.Crypt
             var result = new byte[Math.Min(key1.Length, key2.Length)];
 
             for (var i = 0; i < result.Length; i++)
-                result[i] = (byte) (key1[i] ^ key2[i]);
+                result[i] = (byte)(key1[i] ^ key2[i]);
 
             return result;
         }
@@ -22,9 +22,9 @@ namespace Tera.Connection.Crypt
 
             for (var i = 0; i < src.Length; i++)
                 if (direction)
-                    result[(i + n)%src.Length] = src[i];
+                    result[(i + n) % src.Length] = src[i];
                 else
-                    result[i] = src[(i + n)%src.Length];
+                    result[i] = src[(i + n) % src.Length];
 
             return result;
         }

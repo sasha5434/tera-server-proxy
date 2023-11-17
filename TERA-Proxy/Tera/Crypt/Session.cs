@@ -4,7 +4,8 @@ using System;
 
 namespace Tera.Connection.Crypt
 {
-    public class Session {
+    public class Session
+    {
         public byte[] ClientKey1 = new byte[128];
         public byte[] ClientKey2 = new byte[128];
         public byte[] DecryptKey = new byte[128];
@@ -19,11 +20,8 @@ namespace Tera.Connection.Crypt
         public byte[] TmpKey2 = new byte[128];
 
 
-        public Session(byte[] clientKey1, byte[] clientKey2, byte[] serverKey1, byte[] serverKey2, bool newshifts = true) {
-            ClientKey1 = clientKey1;
-            ClientKey2 = clientKey2;
-            ServerKey1 = serverKey1;
-            ServerKey2 = serverKey2;
+        public void init(bool newshifts = true)
+        {
             TmpKey1 = Utils.ShiftKey(ServerKey1, newshifts ? 67 : 31);
 
             TmpKey2 = Utils.XorKey(TmpKey1, ClientKey1);
@@ -51,6 +49,16 @@ namespace Tera.Connection.Crypt
         public void Decrypt(byte[] data)
         {
             Decryptor.ApplyCryptor(data, data.Length);
+        }
+        public Session CloneKeys()
+        {
+            var session = new Session();
+            session.ClientKey1 = this.ClientKey1;
+            session.ClientKey2 = this.ClientKey2;
+            session.ServerKey1 = this.ServerKey1;
+            session.ServerKey2 = this.ServerKey2;
+            session.init();
+            return session;
         }
     }
 }

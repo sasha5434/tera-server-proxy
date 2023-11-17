@@ -17,7 +17,7 @@ namespace NetProxy
         /// <summary>
         /// Milliseconds
         /// </summary>
-        public int ConnectionTimeout { get; set; } = (15 * 60 * 1000);
+        public int ConnectionTimeout { get; set; } = (5 * 60 * 1000);
 
         public async Task Start(string remoteServerHostNameOrAddress, ushort remoteServerPort, ushort localPort, string? localIp)
         {
@@ -41,10 +41,9 @@ namespace NetProxy
                     {
                         tempConnections.Add(connection);
                     }
-
                     foreach (var tcpConnection in tempConnections)
                     {
-                        if (tcpConnection.LastActivity + ConnectionTimeout < Environment.TickCount64)
+                        if (tcpConnection.closed || tcpConnection.LastActivity + ConnectionTimeout < Environment.TickCount64)
                         {
                             tcpConnection.Stop();
                         }
@@ -78,18 +77,20 @@ namespace NetProxy
         }
     }
 
-    internal class TcpConnection : ConnectionDecrypter
+    internal class TcpConnection
     {
         private readonly TcpClient _localServerConnection;
-        private readonly EndPoint? _sourceEndpoint;
+        private readonly IPEndPoint _sourceEndpoint;
         private readonly IPEndPoint _remoteEndpoint;
         private readonly TcpClient _forwardClient;
-        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new();
         private readonly EndPoint? _serverLocalEndpoint;
         private EndPoint? _forwardLocalEndpoint;
         private long _totalBytesForwarded;
         private long _totalBytesResponded;
         public long LastActivity { get; private set; } = Environment.TickCount64;
+        public bool closed { get; private set; } = false;
+        private TeraConnection? _teraConnection;
 
         public static async Task<TcpConnection> AcceptTcpClientAsync(TcpListener tcpListener, IPEndPoint remoteEndpoint)
         {
@@ -103,16 +104,25 @@ namespace NetProxy
             _localServerConnection = localServerConnection;
             _remoteEndpoint = remoteEndpoint;
 
-            _forwardClient = new TcpClient {NoDelay = true};
+            _forwardClient = new TcpClient { NoDelay = true };
 
-            _sourceEndpoint = _localServerConnection.Client.RemoteEndPoint;
-            _serverLocalEndpoint = _localServerConnection.Client.LocalEndPoint;
+            //_sourceEndpoint = _localServerConnection.Client.RemoteEndPoint;
+            //_serverLocalEndpoint = _localServerConnection.Client.LocalEndPoint;
+            if (_localServerConnection.Client.RemoteEndPoint is IPEndPoint sourceEndpoint &&
+                _localServerConnection.Client.LocalEndPoint is IPEndPoint serverLocalEndpoint)
+            {
+
+                _sourceEndpoint = sourceEndpoint;
+                _serverLocalEndpoint = serverLocalEndpoint;
+            }
+            else
+            {
+                throw new Exception("One of TcpClient's enpoints is null");
+            }
         }
 
         public void Run()
         {
-            if (_sourceEndpoint != null)
-                setSocket(_sourceEndpoint.ToString());
             RunInternal(_cancellationTokenSource.Token);
         }
 
@@ -150,9 +160,12 @@ namespace NetProxy
                             clientStream.Close();
                         }, true))
                         {
+
+                            _teraConnection = new TeraConnection(clientStream, serverStream, _sourceEndpoint, cancellationToken);
+
                             await Task.WhenAny(
-                                CopyToAsync(clientStream, serverStream, 81920, Direction.Forward, cancellationToken),
-                                CopyToAsync(serverStream, clientStream, 81920, Direction.Responding, cancellationToken)
+                                ReadData(clientStream, 81920, Direction.Forward, cancellationToken),
+                                ReadData(serverStream, 81920, Direction.Responding, cancellationToken)
                             ).ConfigureAwait(false);
                         }
                     }
@@ -163,11 +176,19 @@ namespace NetProxy
                 }
                 finally
                 {
+                    if (_teraConnection?.userData?.User?.Character?.Name != null)
+                        Globals.WebTeraData.Pools.Remove(_teraConnection.userData.User.Character);
+                    if (_teraConnection != null)
+                    {
+                        _teraConnection.Close();
+                        _teraConnection = null;
+                    }
+                    closed = true;
                     Console.WriteLine($"Closed TCP {_sourceEndpoint} => {_serverLocalEndpoint} => {_forwardLocalEndpoint} => {_remoteEndpoint}. {_totalBytesForwarded} bytes forwarded, {_totalBytesResponded} bytes responded.");
                 }
             });
         }
-        private async Task CopyToAsync(Stream source, Stream destination, int bufferSize = 81920, Direction direction = Direction.Unknown, CancellationToken cancellationToken = default)
+        private async Task ReadData(Stream source, int bufferSize = 81920, Direction direction = Direction.Unknown, CancellationToken cancellationToken = default)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(bufferSize);
             try
@@ -176,20 +197,17 @@ namespace NetProxy
                 {
                     int bytesRead = await source.ReadAsync(new Memory<byte>(buffer), cancellationToken).ConfigureAwait(false);
                     if (bytesRead == 0) break;
-                    byte[] data = new byte[bytesRead];
-                    Buffer.BlockCopy(buffer, 0, data, 0, bytesRead);
+                    var data = new ArraySegment<byte>(buffer, 0, bytesRead).ToArray();
                     LastActivity = Environment.TickCount64;
-                    await destination.WriteAsync(new ReadOnlyMemory<byte>(data), cancellationToken).ConfigureAwait(false);
-
                     switch (direction)
                     {
                         case Direction.Forward:
                             Interlocked.Add(ref _totalBytesForwarded, bytesRead);
-                            ClientToServer(data);
+                            _teraConnection?.ClientWrite(data);
                             break;
                         case Direction.Responding:
                             Interlocked.Add(ref _totalBytesResponded, bytesRead);
-                            ServerToClient(data);
+                            _teraConnection?.ServerWrite(data);
                             break;
                     }
                 }

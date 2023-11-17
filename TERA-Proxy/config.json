@@ -1,9 +1,0 @@
-﻿{
-  "asura": {
-    "localIp": "127.0.0.1",
-    "localPort": 7801,
-    "forwardIp": "192.168.0.15",
-    "forwardPort": 7801,
-    "protocol": 367080
-  }
-}

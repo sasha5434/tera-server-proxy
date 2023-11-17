@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -9,15 +8,15 @@ namespace Tera.Opcodes
 {
     public class OpCodeNamer
     {
-        private Dictionary<string, ushort> _opCodeCodes;
-        private Dictionary<ushort, string> _opCodeNames;
+        private Dictionary<string, ushort> OpCodeCodes;
+        private Dictionary<ushort, string> OpCodeNames;
         private readonly string _path;
 
         private OpCodeNamer(IEnumerable<KeyValuePair<ushort, string>> names)
         {
             var namesArray = names.ToArray();
-            _opCodeNames = namesArray.ToDictionary(parts => parts.Key, parts => parts.Value);
-            _opCodeCodes = namesArray.ToDictionary(parts => parts.Value, parts => parts.Key);
+            OpCodeNames = namesArray.ToDictionary(parts => parts.Key, parts => parts.Value);
+            OpCodeCodes = namesArray.ToDictionary(parts => parts.Value, parts => parts.Key);
         }
 
         public OpCodeNamer(string filename)
@@ -28,9 +27,9 @@ namespace Tera.Opcodes
 
         public string GetName(ushort opCode)
         {
-            string name;
-            if (_opCodeNames.TryGetValue(opCode, out name))
+            if (OpCodeNames.TryGetValue(opCode, out string name))
                 return name;
+            Console.WriteLine($"Not found name for {opCode}!!!");
             return opCode.ToString("X4");
         }
 
@@ -45,8 +44,7 @@ namespace Tera.Opcodes
 
         public ushort GetCode(string name)
         {
-            ushort code;
-            if (_opCodeCodes.TryGetValue(name, out code))
+            if (OpCodeCodes.TryGetValue(name, out ushort code))
                 return code;
             Console.WriteLine("Missing opcode: " + name);
             return 0;
