@@ -177,7 +177,8 @@ namespace TeraPartyMonitor.Structures
         {
             // check for duplicates before adding
             var names = partyMatching.MatchingProfiles.Select(p => p.Name);
-            var forRemoving = PartyMatchingCollection.Where(m => m.MatchingProfiles.Any(p => names.Contains(p.Name)));
+            var forRemoving = PartyMatchingCollection
+                .Where(m => m.MatchingType == partyMatching.MatchingType && m.MatchingProfiles.Any(p => names.Contains(p.Name)));
 
             foreach (var r in forRemoving)
                 Remove(PartyMatchingCollection, r);
