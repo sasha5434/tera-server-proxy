@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Numerics;
 using Tera.Connection;
 using Tera.Game.Structures;
 
@@ -52,19 +54,19 @@ namespace TeraPartyMonitor.Structures
             var bgMatching = GetPartyMatchingByPlayer(player, MatchingTypes.Battleground);
 
             if (dgMatching != null)
-                Remove(dgMatching);
+                Remove(dgMatching, player.Name);
 
             if (bgMatching != null)
-                Remove(bgMatching);
+                Remove(bgMatching, player.Name);
 
-            var party = GetPartyByPlayer(player);
-            if (party == null)
-                return;
+            //var party = GetPartyByPlayer(player);
+            //if (party == null)
+            //    return;
 
-            if (party.Players.Count > 1)
-                return;
+            //if (party.Players.Count > 1)
+            //    return;
 
-            Remove(party);
+            //Remove(party);
 
             //CachedPlayers.Add(player);
         }
@@ -75,6 +77,14 @@ namespace TeraPartyMonitor.Structures
 
         public IReadOnlyCollection<PartyMatching> GetPartyMatchings()
         {
+            // remove outdated matchings
+            if (PartyMatchingCollection.Any())
+            {
+                var forRemoving = PartyMatchingCollection.Where(m => m.IsRemoveRequested());
+
+                foreach (var r in forRemoving)
+                    Remove(PartyMatchingCollection, r);
+            }
             return PartyMatchingCollection.AsReadOnly();
         }
         public IReadOnlyCollection<CharacterInfo> GetPlayers()
@@ -126,7 +136,7 @@ namespace TeraPartyMonitor.Structures
             try
             {
                 return PartyMatchingCollection.SingleOrDefault(pm => pm.MatchingType == type &&
-                    pm.MatchingProfiles.Any(prof => prof.LinkedPlayer.Equals(player)));
+                    pm.MatchingProfiles.Where(prof => !pm.IsRemoveRequested(prof.Name)).Any(prof => prof.LinkedPlayer.Equals(player)));
             }
             catch
             {
@@ -165,6 +175,13 @@ namespace TeraPartyMonitor.Structures
 
         public void Add(PartyMatching partyMatching)
         {
+            // check for duplicates before adding
+            var names = partyMatching.MatchingProfiles.Select(p => p.Name);
+            var forRemoving = PartyMatchingCollection.Where(m => m.MatchingProfiles.Any(p => names.Contains(p.Name)));
+
+            foreach (var r in forRemoving)
+                Remove(PartyMatchingCollection, r);
+
             Add(PartyMatchingCollection, partyMatching);
         }
 
@@ -178,9 +195,12 @@ namespace TeraPartyMonitor.Structures
             Remove(PartyCollection, party);
         }
 
-        public void Remove(PartyMatching partyMatching)
+        public void Remove(PartyMatching partyMatching, string removeBy)
         {
-            Remove(PartyMatchingCollection, partyMatching);
+            partyMatching.RequestRemove(removeBy);
+
+            if (!partyMatching.IsActive)
+                Remove(PartyMatchingCollection, partyMatching);
         }
 
         public void Replace(PartyMatching oldPartyMatching, PartyMatching newPartyMatching)

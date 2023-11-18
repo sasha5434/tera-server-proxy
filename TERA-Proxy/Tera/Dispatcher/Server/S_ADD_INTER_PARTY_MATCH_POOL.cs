@@ -16,8 +16,9 @@ namespace Tera.Connection.Dispatcher
             IList<MatchingProfile> Profiles = new List<MatchingProfile>();
             IList<MatchingInstance> Instances = new List<MatchingInstance>();
 
-            var stream = packet.payload.GetStream();
-            var reader = stream.GetReader();
+            using var stream = packet.payload.GetStream();
+            using var reader = stream.GetReader();
+
             reader.SkipHeader();
             var instanceCount = reader.ReadUInt16();
             var instancePointer = reader.ReadUInt16();
@@ -72,10 +73,10 @@ namespace Tera.Connection.Dispatcher
 
             if (Profiles.First().Name != packet.userData.User.Character.Name)
                 return;
+
             foreach (var profile in Profiles)
-            {
-                profile.LinkedPlayer = packet.userData.User.Character;
-            }
+                profile.LinkedPlayer = Globals.WebTeraData.Pools.GetPlayerByName(profile.Name);
+
             var partyMatching = new PartyMatching(Profiles, Instances, MatchingType);
             Globals.WebTeraData.Pools.Add(partyMatching);
             if (Globals.Logs.enabled)

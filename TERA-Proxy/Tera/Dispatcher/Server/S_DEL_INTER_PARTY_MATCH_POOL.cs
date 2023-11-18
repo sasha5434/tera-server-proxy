@@ -10,8 +10,8 @@ namespace Tera.Connection.Dispatcher
     {
         public static void Hook(Dispatch handler, ref Packet packet)
         {
-            var stream = packet.payload.GetStream();
-            var reader = stream.GetReader();
+            using var stream = packet.payload.GetStream();
+            using var reader = stream.GetReader();
             reader.SkipHeader();
             var MatchingType = (MatchingTypes)reader.ReadByte();
 
@@ -36,10 +36,10 @@ namespace Tera.Connection.Dispatcher
                 if (partyMatching == null)
                     return;
 
-                if (!partyMatching.MatchingProfiles.First().LinkedPlayer.Equals(player))
-                    return;
+                //if (!partyMatching.MatchingProfiles.First().LinkedPlayer.Equals(player))
+                //    return;
 
-                Globals.WebTeraData.Pools.Remove(partyMatching);
+                Globals.WebTeraData.Pools.Remove(partyMatching, player.Name);
                 if (Globals.Logs.enabled)
                     Console.WriteLine($"{socket}|Removed PartyMatching: {partyMatching}.");
             }
