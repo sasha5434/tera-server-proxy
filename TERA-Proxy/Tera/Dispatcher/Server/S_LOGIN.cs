@@ -10,8 +10,8 @@ namespace Tera.Connection.Dispatcher
         {
             packet.userData.User.InGame = true;
 
-            var stream = packet.payload.GetStream();
-            var reader = stream.GetReader();
+            using var stream = packet.payload.GetStream();
+            using var reader = stream.GetReader();
             reader.Skip(8); //size + opcode + 4
             int nameOffset = reader.ReadInt16();
             reader.Skip(8);
