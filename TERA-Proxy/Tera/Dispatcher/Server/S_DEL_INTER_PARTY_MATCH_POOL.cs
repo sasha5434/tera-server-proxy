@@ -10,8 +10,8 @@ namespace Tera.Connection.Dispatcher
     {
         public static void Hook(Dispatch handler, ref Packet packet)
         {
-            var stream = packet.payload.GetStream();
-            var reader = stream.GetReader();
+            using var stream = packet.payload.GetStream();
+            using var reader = stream.GetReader();
             reader.SkipHeader();
             var MatchingType = (MatchingTypes)reader.ReadByte();
 

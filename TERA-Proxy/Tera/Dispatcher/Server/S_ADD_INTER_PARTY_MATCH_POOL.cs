@@ -16,8 +16,8 @@ namespace Tera.Connection.Dispatcher
             IList<MatchingProfile> Profiles = new List<MatchingProfile>();
             IList<MatchingInstance> Instances = new List<MatchingInstance>();
 
-            var stream = packet.payload.GetStream();
-            var reader = stream.GetReader();
+            using var stream = packet.payload.GetStream();
+            using var reader = stream.GetReader();
             reader.SkipHeader();
             var instanceCount = reader.ReadUInt16();
             var instancePointer = reader.ReadUInt16();
