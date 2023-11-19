@@ -1,6 +1,5 @@
 ﻿using Readers;
 using System;
-using System.Linq;
 using Tera.Game.Structures;
 using static Tera.Connection.Dispatcher.PacketStruct;
 
