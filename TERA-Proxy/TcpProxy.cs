@@ -23,9 +23,8 @@ namespace NetProxy
         {
             var connections = new ConcurrentBag<TcpConnection>();
 
-            IPAddress localIpAddress = string.IsNullOrEmpty(localIp) ? IPAddress.IPv6Any : IPAddress.Parse(localIp);
+            IPAddress localIpAddress = string.IsNullOrEmpty(localIp) ? IPAddress.Any : IPAddress.Parse(localIp);
             var localServer = new TcpListener(new IPEndPoint(localIpAddress, localPort));
-            localServer.Server.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
             localServer.Start();
 
             Console.WriteLine($"TCP proxy started [{localIpAddress}]:{localPort} -> [{remoteServerHostNameOrAddress}]:{remoteServerPort}");
@@ -106,8 +105,6 @@ namespace NetProxy
 
             _forwardClient = new TcpClient { NoDelay = true };
 
-            //_sourceEndpoint = _localServerConnection.Client.RemoteEndPoint;
-            //_serverLocalEndpoint = _localServerConnection.Client.LocalEndPoint;
             if (_localServerConnection.Client.RemoteEndPoint is IPEndPoint sourceEndpoint &&
                 _localServerConnection.Client.LocalEndPoint is IPEndPoint serverLocalEndpoint)
             {
