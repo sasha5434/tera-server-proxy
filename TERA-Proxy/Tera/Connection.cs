@@ -18,6 +18,7 @@ namespace Tera.Connection
         private NetworkStream serverConnection;
         private Dispatch dispatch;
         private byte state;
+        private readonly object serverLocker = new(), clientLocker = new();
 
         public TeraConnection(NetworkStream clientConnection, NetworkStream serverConnection, IPEndPoint clientEndPoint)
         {
@@ -105,19 +106,25 @@ namespace Tera.Connection
         }
         public void sendClient(byte[] data)
         {
-            if (this.state == 3)
+            lock (clientLocker)
             {
-                this.clientSession.Encrypt(data);
+                if (this.state == 3)
+                {
+                    this.clientSession.Encrypt(data);
+                }
+                this.clientConnection.Write(data, 0, data.Length);
             }
-            this.clientConnection.Write(data, 0, data.Length);
         }
         public void sendServer(byte[] data)
         {
-            if (this.state == 3)
+            lock (serverLocker)
             {
-                this.serverSession.Decrypt(data);
+                if (this.state == 3)
+                {
+                    this.serverSession.Decrypt(data);
+                }
+                this.serverConnection.Write(data, 0, data.Length);
             }
-            this.serverConnection.Write(data, 0, data.Length);
         }
         public void Close()
         {
@@ -126,8 +133,8 @@ namespace Tera.Connection
             this.serverSession = null;
             this.clientBuffer = null;
             this.serverBuffer = null;
-            this.clientConnection = null;
-            this.serverConnection = null;
+            this.clientConnection.Dispose();
+            this.serverConnection.Dispose();
             this.dispatch = null;
             this.userData = null;
         }
