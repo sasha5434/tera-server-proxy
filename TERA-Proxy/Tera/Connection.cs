@@ -1,7 +1,7 @@
 ﻿using Readers;
 using System;
-using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using Tera.Connection.Crypt;
 using Tera.Connection.Dispatcher;
 
@@ -14,12 +14,12 @@ namespace Tera.Connection
         public UserData userData;
         private PacketBuffer serverBuffer;
         private PacketBuffer clientBuffer;
-        private Stream clientConnection;
-        private Stream serverConnection;
+        private NetworkStream clientConnection;
+        private NetworkStream serverConnection;
         private Dispatch dispatch;
         private byte state;
 
-        public TeraConnection(Stream clientConnection, Stream serverConnection, IPEndPoint clientEndPoint)
+        public TeraConnection(NetworkStream clientConnection, NetworkStream serverConnection, IPEndPoint clientEndPoint)
         {
             this.userData = new UserData(clientEndPoint.ToString());
             this.state = 0;
@@ -109,7 +109,7 @@ namespace Tera.Connection
             {
                 this.clientSession.Encrypt(data);
             }
-            this.clientConnection.Write(data);
+            this.clientConnection.Write(data, 0, data.Length);
         }
         public void sendServer(byte[] data)
         {
@@ -117,7 +117,7 @@ namespace Tera.Connection
             {
                 this.serverSession.Decrypt(data);
             }
-            this.serverConnection.Write(data);
+            this.serverConnection.Write(data, 0, data.Length);
         }
         public void Close()
         {
