@@ -17,12 +17,12 @@ namespace Tera.Connection
         private Stream clientConnection;
         private Stream serverConnection;
         private Dispatch dispatch;
-        private int state;
+        private byte state;
 
         public TeraConnection(Stream clientConnection, Stream serverConnection, IPEndPoint clientEndPoint)
         {
             this.userData = new UserData(clientEndPoint.ToString());
-            this.state = -1;
+            this.state = 0;
             this.serverSession = new Session();
             this.dispatch = new Dispatch(this);
             this.serverBuffer = new PacketBuffer(dispatch);
@@ -30,33 +30,30 @@ namespace Tera.Connection
             this.clientConnection = clientConnection;
             this.serverConnection = serverConnection;
         }
-
         public void ServerWrite(byte[] data)
         {
             switch (this.state)
             {
-                case -1:
+                case 0:
                     {
                         if (data.ReadUInt32LE(0) == 1)
                         {
-                            this.state = 0;
-                            this.sendClient(data);
-                        }
-                        break;
-                    }
-
-                case 0:
-                    {
-                        if (data.Length == 128)
-                        {
-                            Array.Copy(data, this.serverSession.ServerKey1, 128);
                             this.state = 1;
                             this.sendClient(data);
                         }
                         break;
                     }
-
                 case 1:
+                    {
+                        if (data.Length == 128)
+                        {
+                            Array.Copy(data, this.serverSession.ServerKey1, 128);
+                            this.state = 2;
+                            this.sendClient(data);
+                        }
+                        break;
+                    }
+                case 2:
                     {
                         if (data.Length == 128)
                         {
@@ -64,12 +61,11 @@ namespace Tera.Connection
                             this.clientSession = this.serverSession.CloneKeys();
                             this.serverSession.init();
                             this.sendClient(data);
-                            this.state = 2;
+                            this.state = 3;
                         }
                         break;
                     }
-
-                case 2:
+                case 3:
                     {
                         this.serverSession.Encrypt(data);
                         this.serverBuffer.Write(data);
@@ -81,7 +77,7 @@ namespace Tera.Connection
         {
             switch (this.state)
             {
-                case 0:
+                case 1:
                     {
                         if (data.Length == 128)
                         {
@@ -90,8 +86,7 @@ namespace Tera.Connection
                         }
                         break;
                     }
-
-                case 1:
+                case 2:
                     {
                         if (data.Length == 128)
                         {
@@ -100,8 +95,7 @@ namespace Tera.Connection
                         }
                         break;
                     }
-
-                case 2:
+                case 3:
                     {
                         this.clientSession.Decrypt(data);
                         this.clientBuffer.Write(data);
@@ -109,10 +103,9 @@ namespace Tera.Connection
                     }
             }
         }
-
         public void sendClient(byte[] data)
         {
-            if (this.state == 2)
+            if (this.state == 3)
             {
                 this.clientSession.Encrypt(data);
             }
@@ -120,7 +113,7 @@ namespace Tera.Connection
         }
         public void sendServer(byte[] data)
         {
-            if (this.state == 2)
+            if (this.state == 3)
             {
                 this.serverSession.Decrypt(data);
             }
@@ -128,6 +121,7 @@ namespace Tera.Connection
         }
         public void Close()
         {
+            this.state = 4;
             this.clientSession = null;
             this.serverSession = null;
             this.clientBuffer = null;
