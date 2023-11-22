@@ -57,6 +57,9 @@ namespace Tera.Connection.Dispatcher
                 case "C_REQUEST_PVP_RANKING":
                     C_REQUEST_PVP_RANKING.Hook(this, ref packet);
                     break;
+                case "C_START_INSTANCE_SKILL":
+                    C_START_INSTANCE_SKILL.Hook(this, ref packet);
+                    break;
             }
             if (Globals.Logs.enabled)
                 Log(ref packet, Globals.Logs.hexy);
