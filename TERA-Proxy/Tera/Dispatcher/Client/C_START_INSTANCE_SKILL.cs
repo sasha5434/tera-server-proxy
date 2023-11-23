@@ -12,11 +12,21 @@ namespace Tera.Connection.Dispatcher
             using var stream = packet.payload.GetStream();
             using var reader = stream.GetReader();
             reader.Skip(12);
-            var skillId = reader.ReadUInt16();
-            var group = Math.Floor((decimal)(skillId / 10000));
-            packet.skip = CheckGroup(packet.userData, group);
+            var skillId = new SkillId(reader, 9204);
+            var group = Math.Floor((decimal)(skillId.Id / 10000));
+            if (group != 1730 &&
+                group != 2000 &&
+                group != 6019 &&
+                group != 6025 &&
+                group != 6040 &&
+                group != 6065 &&
+                group != 6095 &&
+                group != 6190 &&
+                group != 6200 &&
+                group != 8822)
+                packet.skip = CheckGroup(packet.userData, group);
             if (packet.skip)
-                Console.WriteLine($"Skip C_START_INSTANCE_SKILL for {packet.userData.User.Character.Name} ({packet.userData.User.Character.PlayerId})! Skill: {skillId}");
+                Console.WriteLine($"Skip C_START_INSTANCE_SKILL for {packet.userData.User.Character.Name} ({packet.userData.User.Character.PlayerId})! Skill: {skillId.Id}");
         }
         private static bool CheckGroup(UserData user, decimal group)
         {
@@ -72,6 +82,14 @@ namespace Tera.Connection.Dispatcher
                     {
                         case 1:
                         case 19:
+                            return false;
+                    }
+                    break;
+                case PlayerClass.Gunner:
+                    switch (group)
+                    {
+                        case 2:
+                        case 7:
                             return false;
                     }
                     break;
