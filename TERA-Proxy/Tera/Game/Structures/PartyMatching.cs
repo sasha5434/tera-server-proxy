@@ -10,7 +10,7 @@ namespace Tera.Game.Structures
         public IList<MatchingProfile> MatchingProfiles { get; set; }
         public IList<MatchingInstance> Instances { get; init; }
         public MatchingTypes MatchingType { get; init; }
-        public bool IsActive => MatchingProfiles.Count - removeRequestNames.Count >= 2;
+        public bool IsRemovable => MatchingProfiles.Count - removeRequestNames.Count < 2;
 
         public PartyMatching(IList<MatchingProfile> profiles, IList<MatchingInstance> instances, MatchingTypes type)
         {
@@ -29,7 +29,7 @@ namespace Tera.Game.Structures
         }
         public bool IsRemoveRequested()
         {
-            return removeRequestNames.Any();
+            return !removeRequestNames.IsEmpty;
         }
 
         public override string ToString()
