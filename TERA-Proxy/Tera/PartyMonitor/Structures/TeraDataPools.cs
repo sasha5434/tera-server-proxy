@@ -134,7 +134,7 @@ namespace TeraPartyMonitor.Structures
             try
             {
                 return PartyMatchingCollection.SingleOrDefault(pm => pm.MatchingType == type &&
-                    pm.MatchingProfiles.Where(prof => !pm.IsRemoveRequested(prof.Name)).Any(prof => prof.LinkedPlayer.Equals(player)));
+                    pm.MatchingProfiles.Any(prof => prof.Name.Equals(player.Name)));
             }
             catch
             {
@@ -198,7 +198,7 @@ namespace TeraPartyMonitor.Structures
         {
             partyMatching.RequestRemove(removeBy);
 
-            if (!partyMatching.IsActive)
+            if (partyMatching.IsRemovable)
                 Remove(PartyMatchingCollection, partyMatching);
         }
 

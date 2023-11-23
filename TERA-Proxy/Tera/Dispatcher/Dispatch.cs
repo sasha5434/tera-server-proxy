@@ -13,53 +13,60 @@ namespace Tera.Connection.Dispatcher
         }
         public void Route(ref Packet packet)
         {
-            switch (packet.name)
+            try
             {
-                case "S_LOGIN_ARBITER":
-                    S_LOGIN_ARBITER.Hook(this, ref packet);
-                    break;
-                case "S_LOGIN_ACCOUNT_INFO":
-                    S_LOGIN_ACCOUNT_INFO.Hook(this, ref packet);
-                    break;
-                case "S_LOGIN":
-                    S_LOGIN.Hook(this, ref packet);
-                    break;
-                case "S_USER_LEVELUP":
-                    S_USER_LEVELUP.Hook(this, ref packet);
-                    break;
-                case "S_USER_CHANGE_NAME":
-                    S_USER_CHANGE_NAME.Hook(this, ref packet);
-                    break;
-                case "S_RETURN_TO_LOBBY":
-                    S_RETURN_TO_LOBBY.Hook(this, ref packet);
-                    break;
-                case "S_EXIT":
-                    S_EXIT.Hook(this, ref packet);
-                    break;
-                case "S_ADD_INTER_PARTY_MATCH_POOL":
-                    S_ADD_INTER_PARTY_MATCH_POOL.Hook(this, ref packet);
-                    break;
-                case "S_DEL_INTER_PARTY_MATCH_POOL":
-                    S_DEL_INTER_PARTY_MATCH_POOL.Hook(this, ref packet);
-                    break;
-                case "S_MODIFY_INTER_PARTY_MATCH_POOL":
-                    S_MODIFY_INTER_PARTY_MATCH_POOL.Hook(this, ref packet);
-                    break;
-                case "C_ADMIN":
-                    C_ADMIN.Hook(this, ref packet);
-                    break;
-                case "C_REQUEST_GAMESTAT_PING":
-                    C_REQUEST_GAMESTAT_PING.Hook(this, ref packet);
-                    break;
-                case "C_REQUEST_PVE_RANKING":
-                    C_REQUEST_PVE_RANKING.Hook(this, ref packet);
-                    break;
-                case "C_REQUEST_PVP_RANKING":
-                    C_REQUEST_PVP_RANKING.Hook(this, ref packet);
-                    break;
-                case "C_START_INSTANCE_SKILL":
-                    C_START_INSTANCE_SKILL.Hook(this, ref packet);
-                    break;
+                switch (packet.name)
+                {
+                    case "S_LOGIN_ARBITER":
+                        S_LOGIN_ARBITER.Hook(this, ref packet);
+                        break;
+                    case "S_LOGIN_ACCOUNT_INFO":
+                        S_LOGIN_ACCOUNT_INFO.Hook(this, ref packet);
+                        break;
+                    case "S_LOGIN":
+                        S_LOGIN.Hook(this, ref packet);
+                        break;
+                    case "S_USER_LEVELUP":
+                        S_USER_LEVELUP.Hook(this, ref packet);
+                        break;
+                    case "S_USER_CHANGE_NAME":
+                        S_USER_CHANGE_NAME.Hook(this, ref packet);
+                        break;
+                    case "S_RETURN_TO_LOBBY":
+                        S_RETURN_TO_LOBBY.Hook(this, ref packet);
+                        break;
+                    case "S_EXIT":
+                        S_EXIT.Hook(this, ref packet);
+                        break;
+                    case "S_ADD_INTER_PARTY_MATCH_POOL":
+                        S_ADD_INTER_PARTY_MATCH_POOL.Hook(this, ref packet);
+                        break;
+                    case "S_DEL_INTER_PARTY_MATCH_POOL":
+                        S_DEL_INTER_PARTY_MATCH_POOL.Hook(this, ref packet);
+                        break;
+                    case "S_MODIFY_INTER_PARTY_MATCH_POOL":
+                        S_MODIFY_INTER_PARTY_MATCH_POOL.Hook(this, ref packet);
+                        break;
+                    case "C_ADMIN":
+                        C_ADMIN.Hook(this, ref packet);
+                        break;
+                    case "C_REQUEST_GAMESTAT_PING":
+                        C_REQUEST_GAMESTAT_PING.Hook(this, ref packet);
+                        break;
+                    case "C_REQUEST_PVE_RANKING":
+                        C_REQUEST_PVE_RANKING.Hook(this, ref packet);
+                        break;
+                    case "C_REQUEST_PVP_RANKING":
+                        C_REQUEST_PVP_RANKING.Hook(this, ref packet);
+                        break;
+                    case "C_START_INSTANCE_SKILL":
+                        C_START_INSTANCE_SKILL.Hook(this, ref packet);
+                        break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Exception thrown during {packet.name}.Hook() execution:\n{e.Message}");
             }
             if (Globals.Logs.enabled)
                 Log(ref packet, Globals.Logs.hexy);
