@@ -90,6 +90,7 @@ namespace NetProxy
             app.MapGet("/online", GetPlayers);
             app.MapGet("/dungeons", GetDungeons);
             app.MapGet("/battlegrounds", GetBattlegrounds);
+            app.MapGet("/lfg", GetLfg);
             app.Run($"http://{localIp}:{webPort.Value}");
             return task;
         }
@@ -115,6 +116,13 @@ namespace NetProxy
                 .GroupBy(s => s.Id)
                 .Select(g => new KeyValuePair<uint, PartyMatchingModel>(g.Key, new PartyMatchingModel(g.Select(p => p.MatchingProfiles))))
                 .ToDictionary(s => s.Key, s => s.Value);
+        }
+
+        private static Dictionary<int, PartyMatchInfoPage> GetLfg()
+        {
+            return Globals.WebTeraData.Pools.GetPartyMatchInfoPages()
+                .OrderBy(i => i.Page)
+                .ToDictionary(i => i.Page);
         }
     }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using Tera.Connection;
 using Tera.Game.Structures;
 
@@ -11,13 +12,14 @@ namespace TeraPartyMonitor.Structures
         protected TeraDataPool<CharacterInfo> PlayerCollection { get; init; }
         protected TeraDataPool<Party> PartyCollection { get; init; }
         protected TeraDataPool<PartyMatching> PartyMatchingCollection { get; init; }
-        //protected TeraDataPool<Player> CachedPlayers { get; init; }
+        protected TeraDataPool<PartyMatchInfoPage> PartyMatchInfoPageCollection { get; init; }
 
         private Dictionary<Type, object> lockers = new()
         {
             { typeof(CharacterInfo), new() },
             { typeof(Party), new() },
-            { typeof(PartyMatching), new() }
+            { typeof(PartyMatching), new() },
+            { typeof(PartyMatchInfoPage), new() }
         };
 
         public TeraDataPools(int capacity = 64)
@@ -25,6 +27,7 @@ namespace TeraPartyMonitor.Structures
             PlayerCollection = new(capacity);
             PartyCollection = new(capacity);
             PartyMatchingCollection = new(capacity);
+            PartyMatchInfoPageCollection = new(capacity);
 
             PlayerCollection.ItemRemoved += PlayerCollection_ItemRemoved;
         }
@@ -65,8 +68,6 @@ namespace TeraPartyMonitor.Structures
             //    return;
 
             //Remove(party);
-
-            //CachedPlayers.Add(player);
         }
 
         #endregion
@@ -88,6 +89,10 @@ namespace TeraPartyMonitor.Structures
         public IReadOnlyCollection<CharacterInfo> GetPlayers()
         {
             return PlayerCollection.AsReadOnly();
+        }
+        public IReadOnlyCollection<PartyMatchInfoPage> GetPartyMatchInfoPages()
+        {
+            return PartyMatchInfoPageCollection.AsReadOnly();
         }
 
         public Party GetPartyByPlayer(CharacterInfo player)
@@ -157,6 +162,18 @@ namespace TeraPartyMonitor.Structures
             }
         }
 
+        public PartyMatchInfoPage GetPartyMatchInfoPageByPage(int page)
+        {
+            try
+            {
+                return PartyMatchInfoPageCollection.SingleOrDefault(i => i.Page == page);
+            }
+            catch
+            {
+                throw new Exception($"There are more than one PartyMatchInfo with the same page: {page}");
+            }
+        }
+
         public void Add(CharacterInfo player)
         {
             //var old = GetPlayerByName(player.Name);
@@ -184,6 +201,15 @@ namespace TeraPartyMonitor.Structures
             Add(PartyMatchingCollection, partyMatching);
         }
 
+        public void Add(PartyMatchInfoPage infoPage)
+        {
+            var old = GetPartyMatchInfoPageByPage(infoPage.Page);
+            if (old != null)
+                Remove(PartyMatchInfoPageCollection, old);
+
+            Add(PartyMatchInfoPageCollection, infoPage);
+        }
+
         public void Remove(CharacterInfo player)
         {
             Remove(PlayerCollection, player);
@@ -200,6 +226,11 @@ namespace TeraPartyMonitor.Structures
 
             if (partyMatching.IsRemovable)
                 Remove(PartyMatchingCollection, partyMatching);
+        }
+
+        public void Remove(PartyMatchInfoPage infoPage)
+        {
+            Remove(PartyMatchInfoPageCollection, infoPage);
         }
 
         public void Replace(PartyMatching oldPartyMatching, PartyMatching newPartyMatching)

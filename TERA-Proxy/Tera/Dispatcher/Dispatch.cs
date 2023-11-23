@@ -47,6 +47,9 @@ namespace Tera.Connection.Dispatcher
                     case "S_MODIFY_INTER_PARTY_MATCH_POOL":
                         S_MODIFY_INTER_PARTY_MATCH_POOL.Hook(this, ref packet);
                         break;
+                    case "S_SHOW_PARTY_MATCH_INFO":
+                        S_SHOW_PARTY_MATCH_INFO.Hook(this, ref packet);
+                        break;
                     case "C_ADMIN":
                         C_ADMIN.Hook(this, ref packet);
                         break;
