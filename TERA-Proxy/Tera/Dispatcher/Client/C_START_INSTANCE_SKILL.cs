@@ -14,7 +14,16 @@ namespace Tera.Connection.Dispatcher
             reader.Skip(12);
             var skillId = new SkillId(reader, 9204);
             var group = Math.Floor((decimal)(skillId.Id / 10000));
-            if (skillId.Id != 60401301)
+            if (group != 1730 &&
+                group != 2000 &&
+                group != 6019 &&
+                group != 6025 &&
+                group != 6040 &&
+                group != 6065 &&
+                group != 6095 &&
+                group != 6190 &&
+                group != 6200 &&
+                group != 8822)
                 packet.skip = CheckGroup(packet.userData, group);
             if (packet.skip)
                 Console.WriteLine($"Skip C_START_INSTANCE_SKILL for {packet.userData.User.Character.Name} ({packet.userData.User.Character.PlayerId})! Skill: {skillId.Id}");
