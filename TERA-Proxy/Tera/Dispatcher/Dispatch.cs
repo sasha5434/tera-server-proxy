@@ -69,7 +69,7 @@ namespace Tera.Connection.Dispatcher
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Exception thrown during {packet.name}.Hook() execution:\n{e.Message}");
+                Console.WriteLine($"Exception thrown during {packet.name}.Hook() execution:\n{e.Message}\n{e.StackTrace}");
             }
             if (Globals.Logs.enabled)
                 Log(ref packet, Globals.Logs.hexy);

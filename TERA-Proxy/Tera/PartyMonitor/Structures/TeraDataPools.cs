@@ -1,7 +1,8 @@
-﻿using System;
+﻿using Microsoft.VisualBasic;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Xml.Linq;
 using Tera.Connection;
 using Tera.Game.Structures;
 
@@ -10,14 +11,14 @@ namespace TeraPartyMonitor.Structures
     internal class TeraDataPools
     {
         protected TeraDataPool<CharacterInfo> PlayerCollection { get; init; }
-        protected TeraDataPool<Party> PartyCollection { get; init; }
+        //protected TeraDataPool<Party> PartyCollection { get; init; }
         protected TeraDataPool<PartyMatching> PartyMatchingCollection { get; init; }
         protected TeraDataPool<PartyMatchInfoPage> PartyMatchInfoPageCollection { get; init; }
 
         private Dictionary<Type, object> lockers = new()
         {
             { typeof(CharacterInfo), new() },
-            { typeof(Party), new() },
+            //{ typeof(Party), new() },
             { typeof(PartyMatching), new() },
             { typeof(PartyMatchInfoPage), new() }
         };
@@ -25,7 +26,7 @@ namespace TeraPartyMonitor.Structures
         public TeraDataPools(int capacity = 64)
         {
             PlayerCollection = new(capacity);
-            PartyCollection = new(capacity);
+            //PartyCollection = new(capacity);
             PartyMatchingCollection = new(capacity);
             PartyMatchInfoPageCollection = new(capacity);
 
@@ -33,21 +34,6 @@ namespace TeraPartyMonitor.Structures
         }
 
         #region Event Handlers
-
-        //private void PartyMatchingCollection_ItemChanged(PartyMatching matching1, PartyMatching matching2)
-        //{
-        //    PartyMatchingCollectionChanged?.Invoke(PartyMatchingCollection.AsReadOnly(), matching1.MatchingType);
-        //}
-
-        //private void PartyMatchingCollection_ItemAdded(PartyMatching matching)
-        //{
-        //    PartyMatchingCollectionChanged?.Invoke(PartyMatchingCollection.AsReadOnly(), matching.MatchingType);
-        //}
-
-        //private void PartyMatchingCollection_ItemRemoved(PartyMatching matching)
-        //{
-        //    PartyMatchingCollectionChanged?.Invoke(PartyMatchingCollection.AsReadOnly(), matching.MatchingType);
-        //}
 
         private void PlayerCollection_ItemRemoved(CharacterInfo player)
         {
@@ -77,69 +63,76 @@ namespace TeraPartyMonitor.Structures
         public IReadOnlyCollection<PartyMatching> GetPartyMatchings()
         {
             // remove outdated matchings
-            if (PartyMatchingCollection.Any())
+            var collection = GetReadOnly(PartyMatchingCollection);
+            if (collection.Count != 0)
             {
-                var forRemoving = PartyMatchingCollection.Where(m => m.IsRemoveRequested());
+                var forRemoving = collection.Where(m => m.IsRemoveRequested());
 
-                foreach (var r in forRemoving)
-                    Remove(PartyMatchingCollection, r);
+                if (forRemoving.Any())
+                {
+                    foreach (var r in forRemoving)
+                        Remove(PartyMatchingCollection, r);
+
+                    return GetReadOnly(PartyMatchingCollection);
+                }
             }
-            return PartyMatchingCollection.AsReadOnly();
+
+            return collection;
         }
         public IReadOnlyCollection<CharacterInfo> GetPlayers()
         {
-            return PlayerCollection.AsReadOnly();
+            return GetReadOnly(PlayerCollection);
         }
         public IReadOnlyCollection<PartyMatchInfoPage> GetPartyMatchInfoPages()
         {
-            return PartyMatchInfoPageCollection.AsReadOnly();
+            return GetReadOnly(PartyMatchInfoPageCollection);
         }
 
-        public Party GetPartyByPlayer(CharacterInfo player)
-        {
-            if (player == null)
-                throw new ArgumentNullException(nameof(player));
+        //public Party GetPartyByPlayer(CharacterInfo player)
+        //{
+        //    if (player == null)
+        //        throw new ArgumentNullException(nameof(player));
 
-            try
-            {
-                return PartyCollection.SingleOrDefault(p => p.Players.Contains(player));
-            }
-            catch
-            {
-                throw new Exception($"Player ({player}) is in more than one party");
-            }
-        }
+        //    try
+        //    {
+        //        return PartyCollection.SingleOrDefault(p => p.Players.Contains(player));
+        //    }
+        //    catch
+        //    {
+        //        throw new Exception($"Player ({player}) is in more than one party");
+        //    }
+        //}
 
-        public Party GetOrCreatePartyByPlayer(CharacterInfo player)
-        {
-            if (player == null)
-                throw new ArgumentNullException(nameof(player));
+        //public Party GetOrCreatePartyByPlayer(CharacterInfo player)
+        //{
+        //    if (player == null)
+        //        throw new ArgumentNullException(nameof(player));
 
-            try
-            {
-                var party = PartyCollection.SingleOrDefault(p => p.Players.Contains(player));
-                if (party == null)
-                {
-                    party = new Party(player);
-                    Add(party);
-                }
-                return party;
-            }
-            catch
-            {
-                throw new Exception($"Player ({player}) is in more than one party");
-            }
-        }
+        //    try
+        //    {
+        //        var party = PartyCollection.SingleOrDefault(p => p.Players.Contains(player));
+        //        if (party == null)
+        //        {
+        //            party = new Party(player);
+        //            Add(party);
+        //        }
+        //        return party;
+        //    }
+        //    catch
+        //    {
+        //        throw new Exception($"Player ({player}) is in more than one party");
+        //    }
+        //}
 
         public PartyMatching GetPartyMatchingByPlayer(CharacterInfo player, MatchingTypes type)
         {
-            if (player == null)
-                throw new ArgumentNullException(nameof(player));
+            ArgumentNullException.ThrowIfNull(player);
 
             try
             {
-                return PartyMatchingCollection.SingleOrDefault(pm => pm.MatchingType == type &&
-                    pm.MatchingProfiles.Any(prof => prof.Name.Equals(player.Name)));
+                var collection = GetReadOnly(PartyMatchingCollection);
+                return collection.SingleOrDefault(pm => pm.MatchingType == type &&
+                        pm.MatchingProfiles.Any(prof => prof.Name.Equals(player.Name)));
             }
             catch
             {
@@ -149,12 +142,12 @@ namespace TeraPartyMonitor.Structures
 
         public CharacterInfo GetPlayerByName(string name)
         {
-            if (name == null)
-                throw new ArgumentNullException(nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(name);
 
             try
             {
-                return PlayerCollection.SingleOrDefault(p => p.Name.Equals(name));
+                var collection = GetReadOnly(PlayerCollection);
+                return collection.SingleOrDefault(p => p.Name.Equals(name));
             }
             catch
             {
@@ -166,7 +159,10 @@ namespace TeraPartyMonitor.Structures
         {
             try
             {
-                return PartyMatchInfoPageCollection.SingleOrDefault(i => i.Page == page);
+                lock (lockers[typeof(PartyMatchInfoPage)])
+                {
+                    return PartyMatchInfoPageCollection.SingleOrDefault(i => i.Page == page);
+                }
             }
             catch
             {
@@ -183,18 +179,21 @@ namespace TeraPartyMonitor.Structures
             Add(PlayerCollection, player);
         }
 
-        public void Add(Party party)
-        {
-            Add(PartyCollection, party);
-        }
+        //public void Add(Party party)
+        //{
+        //    Add(PartyCollection, party);
+        //}
 
         public void Add(PartyMatching partyMatching)
         {
             // check for duplicates before adding
             var names = partyMatching.MatchingProfiles.Select(p => p.Name);
-            var forRemoving = PartyMatchingCollection
-                .Where(m => m.MatchingType == partyMatching.MatchingType && m.MatchingProfiles.Any(p => names.Contains(p.Name)));
 
+            var collection = GetReadOnly(PartyMatchingCollection);
+            var forRemoving = collection.Where(m => 
+                m.MatchingType == partyMatching.MatchingType && 
+                m.MatchingProfiles.Any(p => names.Contains(p.Name)));
+            
             foreach (var r in forRemoving)
                 Remove(PartyMatchingCollection, r);
 
@@ -215,10 +214,10 @@ namespace TeraPartyMonitor.Structures
             Remove(PlayerCollection, player);
         }
 
-        public void Remove(Party party)
-        {
-            Remove(PartyCollection, party);
-        }
+        //public void Remove(Party party)
+        //{
+        //    Remove(PartyCollection, party);
+        //}
 
         public void Remove(PartyMatching partyMatching, string removeBy)
         {
@@ -260,6 +259,13 @@ namespace TeraPartyMonitor.Structures
             {
                 var id = pool.IndexOf(oldItem);
                 pool[id] = newItem;
+            }
+        }
+        private ReadOnlyCollection<T> GetReadOnly<T>(TeraDataPool<T> pool)
+        {
+            lock (lockers[typeof(T)])
+            {
+                return pool.AsReadOnly();
             }
         }
     }
