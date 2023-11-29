@@ -159,10 +159,8 @@ namespace TeraPartyMonitor.Structures
         {
             try
             {
-                lock (lockers[typeof(PartyMatchInfoPage)])
-                {
-                    return PartyMatchInfoPageCollection.SingleOrDefault(i => i.Page == page);
-                }
+                var collection = GetReadOnly(PartyMatchInfoPageCollection);
+                return collection.SingleOrDefault(i => i.Page == page);
             }
             catch
             {
