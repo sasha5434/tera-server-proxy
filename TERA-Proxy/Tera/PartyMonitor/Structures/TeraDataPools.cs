@@ -168,6 +168,15 @@ namespace TeraPartyMonitor.Structures
             }
         }
 
+        public void TrimPartyMatchInfoPage(int pageCount)
+        {
+            var collection = GetReadOnly(PartyMatchInfoPageCollection);
+            var forRemoving = collection.Where(i => i.Page > pageCount);
+
+            foreach (var r in forRemoving)
+                Remove(PartyMatchInfoPageCollection, r);
+        }
+
         public void Add(CharacterInfo player)
         {
             //var old = GetPlayerByName(player.Name);

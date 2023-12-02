@@ -49,6 +49,7 @@ namespace Tera.Connection.Dispatcher
             if (oldInfoPage != null)
             {
                 Globals.WebTeraData.Pools.Remove(oldInfoPage);
+                Globals.WebTeraData.Pools.TrimPartyMatchInfoPage(pageCount);
             }
             if (infoCount > 0)
             {
