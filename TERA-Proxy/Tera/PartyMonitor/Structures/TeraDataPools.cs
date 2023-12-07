@@ -272,7 +272,7 @@ namespace TeraPartyMonitor.Structures
         {
             lock (lockers[typeof(T)])
             {
-                return pool.AsReadOnly();
+                return pool.ToList().AsReadOnly();
             }
         }
     }
