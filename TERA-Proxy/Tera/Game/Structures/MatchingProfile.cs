@@ -7,7 +7,8 @@ namespace Tera.Game.Structures
     [Serializable]
     public class MatchingProfile
     {
-        public string Name { get; init; }
+        private readonly string _name;
+        public string Name => LinkedPlayer?.Name ?? _name;
         public bool IsLeaderRequired { get; init; }
 
         //[JsonConverter(typeof(JsonStringEnumConverter))]
@@ -23,7 +24,7 @@ namespace Tera.Game.Structures
 
         public MatchingProfile(string name, bool isLeaderRequired, PlayerPartyRoles role)
         {
-            Name = name;
+            _name = name;
             IsLeaderRequired = isLeaderRequired;
             Role = role;
         }
