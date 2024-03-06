@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Readers;
 using System;
+using Tera.Game;
 
 namespace Tera.Connection.Dispatcher
 {
@@ -105,6 +106,15 @@ namespace Tera.Connection.Dispatcher
                         if (!fromServer)
                         {
                             // Decide how to handle client sending invalid packets ( ie. a user sending a fake S_LOGIN_ARBITER packet to force admin permissions )
+                            // Decided to disconnect the user
+
+                            // Log the packet the user tried to fake
+                            Log(ref packet, Globals.Logs.hexy);
+                            Console.WriteLine($"Close connection for {packet.userData.User.Character.Name} ({packet.userData.User.Character.PlayerId}) - invalid packet!");
+                            // Write info about the user in case we didn't manage to get the Name/PlayerId
+                            this.connection.logUser();
+                            // Close the connection to the user to prevent the exploit
+                            this.connection.Close();
                         }
                         break;
                     case 'C':

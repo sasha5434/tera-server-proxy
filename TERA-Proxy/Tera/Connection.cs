@@ -138,5 +138,10 @@ namespace Tera.Connection
             this.dispatch = null;
             this.userData = null;
         }
+
+        public void logUser()
+        {
+            Console.WriteLine($"User Info : {{ {((IPEndPoint)clientConnection.Socket.RemoteEndPoint).Address} : {((IPEndPoint)clientConnection.Socket.RemoteEndPoint).Port} }} - {{ {((IPEndPoint)clientConnection.Socket.LocalEndPoint).Address} : {((IPEndPoint)clientConnection.Socket.LocalEndPoint).Port} }} ");
+        }
     }
 }
