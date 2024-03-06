@@ -69,7 +69,7 @@ namespace Tera.Connection
                 case 3:
                     {
                         this.serverSession.Encrypt(data);
-                        this.serverBuffer.Write(data);
+                        this.serverBuffer.Write(data, true);
                         break;
                     }
             }
@@ -99,7 +99,7 @@ namespace Tera.Connection
                 case 3:
                     {
                         this.clientSession.Decrypt(data);
-                        this.clientBuffer.Write(data);
+                        this.clientBuffer.Write(data, false);
                         break;
                     }
             }

@@ -14,7 +14,7 @@ namespace Tera.Connection
             this.dispatch = dispatch;
         }
 
-        public bool Write(byte[] data)
+        public bool Write(byte[] data, bool fromServer = false)
         {
             while (data.Length > 0)
             {
@@ -40,7 +40,7 @@ namespace Tera.Connection
                     // if we filled the buffer, push it
                     if (this.position == this.buffer.Length)
                     {
-                        dispatch.Handle(this.buffer);
+                        dispatch.Handle(this.buffer, fromServer);
                         this.buffer = null;
                         this.position = 0;
                     }
@@ -71,7 +71,7 @@ namespace Tera.Connection
                 }
 
                 // otherwise, just push it and chop off the front, then keep going
-                dispatch.Handle(new ArraySegment<byte>(data, 0, size).ToArray());
+                dispatch.Handle(new ArraySegment<byte>(data, 0, size).ToArray(), fromServer);
                 data = new ArraySegment<byte>(data, size, data.Length - size).ToArray();
             }
             return true;

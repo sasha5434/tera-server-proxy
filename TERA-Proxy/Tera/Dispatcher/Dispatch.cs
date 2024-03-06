@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Readers;
 using System;
 
@@ -11,7 +12,7 @@ namespace Tera.Connection.Dispatcher
         {
             this.connection = connection;
         }
-        public void Route(ref Packet packet)
+        public void Route(ref Packet packet, bool fromServer)
         {
             try
             {
@@ -73,7 +74,7 @@ namespace Tera.Connection.Dispatcher
             }
             if (Globals.Logs.enabled)
                 Log(ref packet, Globals.Logs.hexy);
-            Write(ref packet);
+            Write(ref packet, fromServer);
         }
         public static void Log(ref Packet packet, bool hexy = false)
         {
@@ -86,21 +87,25 @@ namespace Tera.Connection.Dispatcher
             else
                 Console.WriteLine($"[{packet.time.ToLongTimeString()}:{packet.time.Millisecond}] {packet.userData.Socket}   {arrow}   {packet.name} ({packet.opcode}){modified}{crafted}{skip}");
         }
-        public void Handle(byte[] data)
+        public void Handle(byte[] data, bool fromServer)
         {
             Packet packet = new(connection.userData, opcode: data.ReadUInt16LE(offset: 2), payload: data);
-            Route(ref packet);
+            Route(ref packet, fromServer);
         }
 
-        public void Write(ref Packet packet)
+        public void Write(ref Packet packet, bool fromServer)
         {
             if (!packet.skip)
             {
                 switch (packet.name[packet.name.IndexOf("TTB_") == 0 ? 4 : 0])
                 {
                     case 'S':
-                    case 'I':
+                    case 'I': // This case should never happen server will only send S_/TTB_ packets
                         this.connection.sendClient(packet.payload);
+                        if (!fromServer)
+                        {
+                            // Decide how to handle client sending invalid packets ( ie. a user sending a fake S_LOGIN_ARBITER packet to force admin permissions )
+                        }
                         break;
                     case 'C':
                         this.connection.sendServer(packet.payload);
