@@ -14,7 +14,7 @@ namespace Tera.Connection.Dispatcher
             bytes.WriteUInt16LE(Globals.Opcode.GetCode("S_RESPONSE_GAMESTAT_PONG"), 2);
             var newPacket = new Packet(packet.userData, "S_RESPONSE_GAMESTAT_PONG", payload: bytes);
 
-            handler.Route(ref newPacket, false);
+            handler.Route(ref newPacket, true);
         }
     }
 }
