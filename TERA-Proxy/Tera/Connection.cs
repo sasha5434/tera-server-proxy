@@ -136,7 +136,6 @@ namespace Tera.Connection
             this.clientConnection.Dispose();
             this.serverConnection.Dispose();
             this.dispatch = null;
-            this.userData = null;
         }
 
         public void logUser()
