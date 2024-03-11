@@ -1,20 +1,35 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using Readers;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using Tera.Game;
+using Tera.Mods.Controlers;
+using Tera.Mods.Controlers.AntiCheat;
 
 namespace Tera.Connection.Dispatcher
 {
     public class Dispatch : PacketStruct
     {
         private TeraConnection connection;
+        private List<ILoader> loaders;
 
         public Dispatch(TeraConnection connection)
         {
             this.connection = connection;
+            this.loaders = new List<ILoader>();
+
+            //AntiCheat
+            Tera.Mods.Controlers.AntiCheat.Loader antiCheatLoader = new Tera.Mods.Controlers.AntiCheat.Loader();
+
+            //Add more mods
+
+            loaders.Add(antiCheatLoader);
         }
         public void Route(ref Packet packet, bool fromServer)
         {
+            // Load packets for global information/data
             try
             {
                 switch (packet.name)
@@ -73,6 +88,18 @@ namespace Tera.Connection.Dispatcher
             {
                 Console.WriteLine($"Exception thrown during {packet.name}.Hook() execution:\n{e.Message}\n{e.StackTrace}");
             }
+            
+            try
+            {
+                foreach(ILoader loader in this.loaders)
+                {
+                    if (loader != null)
+                    {
+                        loader.Route(this, ref packet);
+                    }
+                }
+            }catch (Exception e) { Console.WriteLine(e.ToString()); }
+
             if (Globals.Logs.enabled)
                 Log(ref packet, Globals.Logs.hexy);
             Write(ref packet, fromServer);

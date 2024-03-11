@@ -136,9 +136,6 @@ namespace Tera.Connection
             this.clientConnection.Dispose();
             this.serverConnection.Dispose();
             this.dispatch = null;
-            if (userData?.User?.Character?.Name != null)
-                Globals.WebTeraData.Pools.Remove(userData.User.Character);
-            this.userData = null;
         }
 
         public void logUser()
