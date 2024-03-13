@@ -1,12 +1,7 @@
-using Microsoft.AspNetCore.Http.HttpResults;
 using Readers;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using Tera.Game;
 using Tera.Mods.Controlers;
-using Tera.Mods.Controlers.AntiCheat;
 
 namespace Tera.Connection.Dispatcher
 {
