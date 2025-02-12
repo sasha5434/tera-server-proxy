@@ -62,6 +62,12 @@ namespace Tera.Connection.Dispatcher
                     case "S_SHOW_PARTY_MATCH_INFO":
                         S_SHOW_PARTY_MATCH_INFO.Hook(this, ref packet);
                         break;
+                    case "S_PLAYER_STAT_UPDATE":
+                        S_PLAYER_STAT_UPDATE.Hook(this, ref packet);
+                        break;
+                    case "S_GUILD_NAME":
+                        S_GUILD_NAME.Hook(this, ref packet);
+                        break;
                     case "C_ADMIN":
                         C_ADMIN.Hook(this, ref packet);
                         break;

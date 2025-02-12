@@ -21,6 +21,8 @@ namespace Tera.Game.Structures
         public PlayerClass? Class => LinkedPlayer?.Class;
         public int? Level => LinkedPlayer?.Level;
         public uint? PlayerId => LinkedPlayer?.PlayerId;
+        public float? ItemLevel => LinkedPlayer?.ItemLevel;
+        public string GuildName => LinkedPlayer?.GuildName;
 
         public MatchingProfile(string name, bool isLeaderRequired, PlayerPartyRoles role)
         {

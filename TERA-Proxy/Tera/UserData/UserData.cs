@@ -27,12 +27,14 @@ namespace Tera.Connection
         public uint PlayerId { get; set; }
         public string Name { get; set; }
         public byte Level { get; set; }
+        public float ItemLevel { get; set; }
         //[JsonConverter(typeof(JsonStringEnumConverter))]
         public PlayerRace Race { get; set; }
         //[JsonConverter(typeof(JsonStringEnumConverter))]
         public PlayerClass Class { get; set; }
         //[JsonConverter(typeof(JsonStringEnumConverter))]
         public PlayerGender Gender { get; set; }
+        public string GuildName { get; set; }
 
         public override string ToString()
         {
