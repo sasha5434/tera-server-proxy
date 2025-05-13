@@ -10,6 +10,9 @@ namespace Tera.Connection.Dispatcher
         {
             packet.userData.User.InGame = true;
 
+            packet.userData.User.Character.GuildName = null;
+            packet.userData.User.Character.ItemLevel = 0;
+
             using var stream = packet.payload.GetStream();
             using var reader = stream.GetReader();
             reader.Skip(8); //size + opcode + 4
